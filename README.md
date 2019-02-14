@@ -1,3 +1,18 @@
+Differences
+===
+
+This provides an UI front end using the [kafdrop](https://github.com/HomeAdvisor/Kafdrop) project.
+
+To build the docker image run the following
+
+```bash
+docker build -f all-in-one.docker . -t arvindn05:kafka-all-in-one
+```
+
+Follow the other other instructions to get it working.
+
+Kafdrop can be accessed using the url http://localhost:9010
+
 Kafka in Docker
 ===
 
@@ -6,10 +21,12 @@ This repository provides everything you need to run Kafka in Docker.
 For convenience also contains a packaged proxy that can be used to get data from
 a legacy Kafka 7 cluster into a dockerized Kafka 8.
 
+Tested on Mac OS 10.14.2 (18C54)
+
 Why?
 ---
 The main hurdle of running Kafka in Docker is that it depends on Zookeeper.
-Compared to other Kafka docker images, this one runs both Zookeeper and Kafka
+Compared to other Kafka docker images, this one runs Zookeeper, Kafka and kafdrop
 in the same container. This means:
 
 * No dependency on an external Zookeeper host, or linking to another container
@@ -19,7 +36,7 @@ Run
 ---
 
 ```bash
-docker run -p 2181:2181 -p 9092:9092 --env ADVERTISED_HOST=`docker-machine ip \`docker-machine active\`` --env ADVERTISED_PORT=9092 spotify/kafka
+docker run -p 2181:2181 -p 9092:9092 9010:9010 --env ADVERTISED_HOST=`docker-machine ip \`docker-machine active\`` --env ADVERTISED_PORT=9092 arvindn05:kafka-all-in-one
 ```
 
 ```bash

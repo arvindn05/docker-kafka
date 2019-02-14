@@ -1,0 +1,42 @@
+
+# Kafdrop Sourced from https://hub.docker.com/r/thomsch98/kafdrop/dockerfile
+
+FROM java:openjdk-8-jdk
+
+ENV DEBIAN_FRONTEND=noninteractive \
+	SCALA_VERSION=2.11 \
+	KAFKA_VERSION=2.1.0 \
+	ZK_HOSTS=localhost:2181 \
+    LISTEN=9010
+
+ENV KAFKA_HOME=/opt/kafka_"$SCALA_VERSION"-"$KAFKA_VERSION"
+
+# Install Kafka, Zookeeper and other needed things
+RUN apt-get update && \
+    apt-get install -y zookeeper wget supervisor dnsutils maven && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && \
+    wget -q http://apache.mirrors.spacedump.net/kafka/"$KAFKA_VERSION"/kafka_"$SCALA_VERSION"-"$KAFKA_VERSION".tgz -O /tmp/kafka_"$SCALA_VERSION"-"$KAFKA_VERSION".tgz && \
+    tar xfz /tmp/kafka_"$SCALA_VERSION"-"$KAFKA_VERSION".tgz -C /opt && \
+    rm /tmp/kafka_"$SCALA_VERSION"-"$KAFKA_VERSION".tgz
+
+# Install Kafdrop
+
+RUN curl -sL https://github.com/HomeAdvisor/Kafdrop/archive/master.zip > /tmp/master.zip \
+    && unzip /tmp/master.zip -d /tmp \
+    && cd /tmp/Kafdrop-master \
+    && mvn package \
+    && cp ./target/kafdrop-*.jar /usr/local/bin/kafdrop.jar \
+    && mvn clean \
+    && rm -fr /tmp/Kafdrop-master /tmp/master.zip \
+    && echo ""
+
+ADD kafka/scripts/start-kafka.sh /usr/bin/start-kafka.sh
+
+# Supervisor config
+ADD kafka/supervisor/kafka.conf kafka/supervisor/zookeeper.conf kafka/supervisor/kafdrop.conf /etc/supervisor/conf.d/
+
+# 2181 is zookeeper, 9092 is kafka, 9010 is kafdrop
+EXPOSE 2181 9092 9010
+
+CMD ["supervisord", "-n"]
